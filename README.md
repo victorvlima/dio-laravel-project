@@ -59,3 +59,20 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+## Problems
+
+- vendor not created
+-- sudo apt-get install php-xml
+-- delete e create a new project
+
+- mb_split()
+--sudo apt-get install php-mbstring
+
+- SQLSTATE ... no such table...
+-- php artisan migrate
+-- php artisan migrate:fresh
+
+- API not intalled
+-- php artisan install:api
