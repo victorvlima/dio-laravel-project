@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class UsersController extends Controller
@@ -21,16 +20,44 @@ class UsersController extends Controller
         return view('users', compact('users'));
     }
 
-    public function getUserById()
-    {
-        return 'Implementar getUserById();';
-    }
+    /**
+     * Exibir o usuário por ID
+     */
+    public function getUserById($id)
+{
+    try {
+        // Verificar se o ID é válido
+        if (!is_numeric($id) || $id <= 0) {
+            return redirect()->route('users.index')
+                ->with('error', 'ID de usuário inválido!');
+        }
 
+        $user = User::find($id);
+        
+        if (!$user) {
+            return redirect()->route('users.index')
+                ->with('error', 'Usuário com ID ' . $id . ' não encontrado!');
+        }
+        
+        return view('show-user', compact('user'));
+        
+    } catch (\Exception $e) {
+        return redirect()->route('users.index')
+            ->with('error', 'Erro ao buscar usuário: ' . $e->getMessage());
+    }
+}
+
+    /**
+     * Exibir o formulário de registro de um novo usuário
+     */
     public function userForm()
     {
         return view('new-user');
     }
 
+    /**
+     * Registrar um novo usuário
+     */
     public function newUser(Request $request)
     {
         //return 'Implementar newUser();';
@@ -46,14 +73,20 @@ class UsersController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return redirect()->route('user.saved')->with('success', 'User created successfully!');
+        return redirect()->route('users.index')->with('success', 'User created successfully!');
     }
 
+    /**
+     * Atualizar um usuário
+     */
     public function updateUser()
     {
         return 'Implementar updateUser();';
     }
 
+    /**
+     * Registrar a exclusão de um usuário ou deletar de fato
+     */
     public function deleteUser()
     {
         return 'Implementar deleteUser();';
