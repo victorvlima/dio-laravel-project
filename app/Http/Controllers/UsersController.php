@@ -21,7 +21,7 @@ class UsersController extends Controller
     }
 
     /**
-     * Exibir o usuário por ID
+     * Busca o usuário por ID
      */
     public function getUserById(int $id)
     {
@@ -56,7 +56,7 @@ class UsersController extends Controller
     }
 
     /**
-     * Registrar um novo usuário
+     * Processa o registro um novo usuário
      */
     public function newUser(Request $request)
     {
@@ -92,7 +92,7 @@ class UsersController extends Controller
     }
 
     /**
-     * Atualizar um usuário
+     * Atualizar o registro de um usuário
      */
     public function updateUser(Request $request, int $id)
     {
@@ -134,8 +134,54 @@ class UsersController extends Controller
     /**
      * Registrar a exclusão de um usuário ou deletar de fato
      */
-    public function deleteUser()
+    public function deleteUser(Request $request, $id)
     {
-        return 'Implementar deleteUser();';
+        try {
+            // Buscar o usuário
+            $user = User::findOrFail($id);
+            
+            // Verificação adicional de segurança (opcional)
+            if ($request->has('confirm') && $request->confirm !== 'yes') {
+                return redirect()->back()
+                    ->with('error', 'Confirmação necessária para deletar o usuário!');
+            }
+            
+            // Verificar se não é o próprio usuário logado (se houver autenticação)
+            // if (auth()->check() && auth()->id() == $user->id) {
+            //     return redirect()->back()
+            //         ->with('error', 'Você não pode deletar seu próprio usuário!');
+            // }
+            
+            // Armazenar dados para a mensagem
+            $userName = $user->name;
+            $userEmail = $user->email;
+            
+            // Deletar o usuário
+            $user->delete();
+            
+            // Log da ação (opcional)
+            \Log::info('Usuário deletado', [
+                'deleted_user_id' => $id,
+                'deleted_user_name' => $userName,
+                'deleted_user_email' => $userEmail,
+                'deleted_at' => now()
+            ]);
+            
+            // Redirecionar com mensagem de sucesso
+            return redirect()->route('users.index')
+                ->with('success', 'Usuário "' . $userName . '" (' . $userEmail . ') foi deletado com sucesso!');
+                
+        } catch (\Exception $e) {
+            // Log do erro
+            \Log::error('Erro ao deletar usuário', [
+                'user_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return redirect()->route('users.index')
+                ->with('error', 'Erro ao deletar usuário: ' . $e->getMessage());
+        }
     }
+
 }
+

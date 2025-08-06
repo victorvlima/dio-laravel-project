@@ -83,19 +83,13 @@
                                                             <i class="fas fa-edit"></i>
                                                         </a>
                                                         
-                                                        {{-- Botão Deletar --}}
-                                                        <form action="{{ route('users.destroy', $user->id) }}" 
-                                                              method="POST" 
-                                                              style="display: inline-block;"
-                                                              onsubmit="return confirm('Tem certeza que deseja deletar este usuário?')">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" 
-                                                                    class="btn btn-sm btn-outline-danger" 
-                                                                    title="Deletar">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        </form>
+                                                        {{-- Botão Deletar com Modal --}}
+                                                        <button type="button" 
+                                                                class="btn btn-sm btn-outline-danger" 
+                                                                title="Deletar"
+                                                                onclick="confirmDelete({{ $user->id }}, '{{ $user->name }}', '{{ $user->email }}')">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -127,6 +121,46 @@
         </div>
     </div>
 
+    <!-- Modal de Confirmação de Exclusão -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteModalLabel">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <i class="fas fa-user-times fa-3x text-danger mb-3"></i>
+                        <h5>Tem certeza que deseja deletar este usuário?</h5>
+                        <p class="text-muted">
+                            <strong id="deleteUserName"></strong><br>
+                            <span id="deleteUserEmail"></span>
+                        </p>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Atenção:</strong> Esta ação não pode ser desfeita!
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <form id="deleteForm" method="POST" style="display: inline;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Sim, Deletar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -142,6 +176,45 @@
                 }, 500);
             });
         }, 5000);
+    </script>
+    <script>
+        function confirmDelete(userId, userName, userEmail) {
+            // Preencher dados no modal
+            document.getElementById('deleteUserName').textContent = userName;
+            document.getElementById('deleteUserEmail').textContent = userEmail;
+            
+            // Configurar o formulário
+            const form = document.getElementById('deleteForm');
+            form.action = `/users/${userId}`;
+            
+            // Mostrar o modal
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+
+        // Confirmação simples (alternativa ao modal)
+        function simpleConfirmDelete(userId, userName) {
+            if (confirm(`Tem certeza que deseja deletar o usuário "${userName}"?\n\nEsta ação não pode ser desfeita!`)) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/users/${userId}`;
+                
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                
+                const methodField = document.createElement('input');
+                methodField.type = 'hidden';
+                methodField.name = '_method';
+                methodField.value = 'DELETE';
+                
+                form.appendChild(csrfToken);
+                form.appendChild(methodField);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
     </script>
 </body>
 </html>
