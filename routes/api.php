@@ -1,21 +1,31 @@
 <?php
 
-use App\Http\Controllers\HelloWorldController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\UsersApiController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/hello/{nome}', [HelloWorldController::class, 'hello']);
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
 
-Route::get('/user', function (Request $request) {
-    return "Implementar /user";
-//    return $request->user();
+// Grupo de rotas da API de usuários
+Route::prefix('users')->group(function () {
+    // GET /api/users - Lista todos os usuários
+    Route::get('/', [UsersApiController::class, 'index']);
+    
+    // GET /api/users/{id} - Busca usuário por ID
+    Route::get('/{id}', [UsersApiController::class, 'show']);
+    
+    // POST /api/users - Cria novo usuário
+    Route::post('/', [UsersApiController::class, 'store']);
+    
+    // PUT /api/users/{id} - Atualiza usuário
+    Route::put('/{id}', [UsersApiController::class, 'update']);
+    
+    // DELETE /api/users/{id} - Deleta usuário
+    Route::delete('/{id}', [UsersApiController::class, 'destroy']);
 });
 
-Route::post('/post', function () {
-    echo "POST aqui!";
-});
-
-Route::get('/user-logged', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
+// Ou usando Resource Route (mais conciso):
+// Route::apiResource('users', UsersApiController::class);
