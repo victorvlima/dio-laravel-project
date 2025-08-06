@@ -23,29 +23,29 @@ class UsersController extends Controller
     /**
      * Exibir o usuário por ID
      */
-    public function getUserById($id)
-{
-    try {
-        // Verificar se o ID é válido
-        if (!is_numeric($id) || $id <= 0) {
-            return redirect()->route('users.index')
-                ->with('error', 'ID de usuário inválido!');
-        }
+    public function getUserById(int $id)
+    {
+        try {
+            // Verificar se o ID é válido
+            if (!is_numeric($id) || $id <= 0) {
+                return redirect()->route('users.index')
+                    ->with('error', 'ID de usuário inválido!');
+            }
 
-        $user = User::find($id);
-        
-        if (!$user) {
+            $user = User::find($id);
+            
+            if (!$user) {
+                return redirect()->route('users.index')
+                    ->with('error', 'Usuário com ID ' . $id . ' não encontrado!');
+            }
+            
+            return view('show-user', compact('user'));
+            
+        } catch (\Exception $e) {
             return redirect()->route('users.index')
-                ->with('error', 'Usuário com ID ' . $id . ' não encontrado!');
+                ->with('error', 'Erro ao buscar usuário: ' . $e->getMessage());
         }
-        
-        return view('show-user', compact('user'));
-        
-    } catch (\Exception $e) {
-        return redirect()->route('users.index')
-            ->with('error', 'Erro ao buscar usuário: ' . $e->getMessage());
     }
-}
 
     /**
      * Exibir o formulário de registro de um novo usuário
@@ -77,13 +77,60 @@ class UsersController extends Controller
     }
 
     /**
-     * Atualizar um usuário
+     * Exibir formulaŕio para edição de usuário
      */
-    public function updateUser()
+    public function editUser(int $id)
     {
-        return 'Implementar updateUser();';
+        try {
+            $user = User::findOrFail($id);
+            return view('edit-user', compact('user'));
+            
+        } catch (\Exception $e) {
+            return redirect()->route('users.index')
+                ->with('error', 'Usuário não encontrado!');
+        }
     }
 
+    /**
+     * Atualizar um usuário
+     */
+    public function updateUser(Request $request, int $id)
+    {
+        // Validação dos dados
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'password' => 'nullable|string|min:8|confirmed',
+        ]);
+
+        try {
+            // Buscar o usuário
+            $user = User::findOrFail($id);
+
+            // Preparar dados para atualização
+            $updateData = [
+                'name' => $request->name,
+                'email' => $request->email,
+            ];
+
+            // Adicionar senha se fornecida
+            if ($request->filled('password')) {
+                $updateData['password'] = Hash::make($request->password);
+            }
+
+            // Atualizar o usuário
+            $user->update($updateData);
+
+            // Redirecionar com mensagem de sucesso
+            return redirect()->route('users.show', $id)
+                ->with('success', 'Usuário atualizado com sucesso!');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Erro ao atualizar usuário: ' . $e->getMessage());
+        }
+    }
     /**
      * Registrar a exclusão de um usuário ou deletar de fato
      */

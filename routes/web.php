@@ -17,7 +17,11 @@ Route::get('/new-user', [UsersController::class, 'userForm'])->name('users.creat
 
 Route::post('/save-user', [UsersController::class, 'newUser'])->name('users.store');
 
-Route::put('/upd-user/{id}', [UsersController::class, 'updateUser'])->name('users.edit');
+// Mostrar formulário de edição
+Route::get('/users/{id}/edit', [UsersController::class, 'editUser'])->name('users.edit');
+
+// Processar atualização
+Route::put('/users/{id}', [UsersController::class, 'updateUser'])->name('users.update');
 
 Route::put('/del-user/{id}', [UsersController::class, 'deleteUser'])->name('users.destroy');
 
